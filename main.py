@@ -1,3 +1,4 @@
+import hashlib
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont
@@ -57,9 +58,12 @@ class SignupWindow(QWidget):
         # Signup button
         self.signup_button = QPushButton()
         self.signup_button.setText("Signup")
+        self.signup_button.clicked.connect(lambda: signup_onClick(self))
         self.signup_grid.addWidget(self.signup_button, 1, 2)
 
         self.main_layout.addItem(spacer_expanding_V)
+
+
 
 
 class LoginWindow(QWidget):
@@ -115,11 +119,12 @@ class LoginWindow(QWidget):
         self.signup_button.clicked.connect(self.signup_onClick)
         self.signup_layout.addWidget(self.signup_button)
 
+        self.signup_window = SignupWindow()
+
         self.main_layout.addItem(spacer_expanding_V)
 
     def signup_onClick(self):
-        signup_window = SignupWindow()
-        signup_window.show()
+        self.signup_window.show()
         self.close()
 
 
@@ -365,9 +370,27 @@ def loading_database(window):
 
 # Login Clicked
 def login_onClick(current):
-    loading_database(win)
-    win.show()
-    current.close()
+    hashed_entered_pass = hashlib.sha256(current.login_lineedit.text().encode()).hexdigest()
+    with open('data.bin', 'rb') as f:
+        hashed_pass = f.readline().rstrip(b'\n').decode()
+
+    if hashed_entered_pass == hashed_pass:
+        loading_database(win)
+        win.show()
+        current.close()
+
+
+# Signup Clicked
+def signup_onClick(current):
+    if current.signup_lineedit.text() == current.signup_c_lineedit.text():
+        key = b"G\x82\x91\xf3\xf3\xf1)\xd4F\x8dd'$\x17\x1c\xfc\xe1\xf1\xed\xa0\x90-\xa3I\x1dL\xd0\x03\xcd\xbd\xdb\xe7"
+        hashed_pass = hashlib.sha256(current.signup_lineedit.text().encode()).hexdigest()
+        with open('data.bin', 'wb') as f:
+            f.write(hashed_pass.encode() + b'\n')
+
+        loading_database(win)
+        win.show()
+        current.close()
 
 
 if __name__ == '__main__':
