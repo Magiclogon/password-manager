@@ -1,5 +1,4 @@
 import hashlib
-import os
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont
@@ -393,7 +392,6 @@ def signup_onClick(current):
         passwd = current.signup_lineedit.text()
         hashed_pass = hashlib.sha256(passwd.encode()).hexdigest()
         encrypted_pass, iv = encrypt_password(passwd, enc_key_p)
-        print(type(encrypted_pass))
 
         # Saving to bin file
         with open('data.bin', 'ab') as f:

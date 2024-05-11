@@ -10,7 +10,6 @@ def generate_key(enc_key_p, iv):
     salt = b'\xb4Keb\x97g`\x1bO9\x84\xc5Z\xef0\xca$C\x11\x97\xc8\xc5\xb5"\xd2v\x8d\xea\xf8\xceY\x82'
     with open('data.bin', 'rb') as f:
         password = decrypt_password(f.readlines()[1].rstrip(b'\n'), iv, enc_key_p)
-    print(password)
     key = PBKDF2(password, salt, dkLen=32)
     return key
 
@@ -40,4 +39,3 @@ def decrypt_password(encrypted_password, iv, encryption_key):
     unpadded_data = unpadder.update(decrypted_data) + unpadder.finalize()
 
     return unpadded_data.decode()
-

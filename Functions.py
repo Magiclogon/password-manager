@@ -2,14 +2,13 @@ import os
 import sqlite3
 import string
 import secrets
-import time
 
 
 # Creating strong password
-def create_password(password_lenght):
+def create_password(password_length):
     alphabet = string.ascii_letters + string.digits + string.punctuation
     while True:
-        password = ''.join(secrets.choice(alphabet) for _ in range(password_lenght))
+        password = ''.join(secrets.choice(alphabet) for _ in range(password_length))
         if ((any(ch.islower() for ch in password)) and (any(ch.isupper() for ch in password)) and
                 (any(ch.isdigit for ch in password)) and (any(ch in string.punctuation for ch in password))):
             break
