@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import string
 import secrets
@@ -25,3 +26,15 @@ def add_to_database(website, password, iv):
     conn.commit()
 
 
+# Delete all entries in the database.
+def reset_data_and_database():
+    if os.path.isfile('login_info.db'):
+        os.remove('login_info.db')
+    if os.path.isfile('data.bin'):
+        os.remove('data.bin')
+
+
+def get_key():
+    with open('data.bin', 'rb') as f:
+        key = f.readlines()[2].rstrip(b'\n')
+    return key

@@ -1,4 +1,5 @@
 import hashlib
+import os
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont
@@ -62,8 +63,6 @@ class SignupWindow(QWidget):
         self.signup_grid.addWidget(self.signup_button, 1, 2)
 
         self.main_layout.addItem(spacer_expanding_V)
-
-
 
 
 class LoginWindow(QWidget):
@@ -200,8 +199,8 @@ class AddingPasswordWindow(QWidget):
     def add_onClick(self):
         website = self.website_lineedit.text()
         passwd = self.password_lineedit.text()
-        password_encrypted, iv = encrypt_password(passwd)
-        if website != "" and password != "":
+        password_encrypted, iv = encrypt_password(passwd, get_key())
+        if website != "" and passwd != "":
             add_to_database(website, password_encrypted, iv)
             loading_database(win)
             self.website_lineedit.setText("")
@@ -364,7 +363,7 @@ def loading_database(window):
 
     for r in cursor.fetchall():
         website = r[0]
-        passwd_decrypted = decrypt_password(r[1], r[2])
+        passwd_decrypted = decrypt_password(r[1], r[2], get_key())
         window.addRowToGrid(website, passwd_decrypted)
 
 
@@ -382,11 +381,26 @@ def login_onClick(current):
 
 # Signup Clicked
 def signup_onClick(current):
-    if current.signup_lineedit.text() == current.signup_c_lineedit.text():
-        key = b"G\x82\x91\xf3\xf3\xf1)\xd4F\x8dd'$\x17\x1c\xfc\xe1\xf1\xed\xa0\x90-\xa3I\x1dL\xd0\x03\xcd\xbd\xdb\xe7"
-        hashed_pass = hashlib.sha256(current.signup_lineedit.text().encode()).hexdigest()
-        with open('data.bin', 'wb') as f:
+
+    enc_key_p = b"G\x82\x91\xf3\xf3\xf1)\xd4F\x8dd'$\x17\x1c\xfc\xe1\xf1\xed\xa0\x90-\xa3I\x1dL\xd0\x03\xcd\xbd\xdb\xe7"
+
+    # If the two fields are matching
+    if (current.signup_lineedit.text() == current.signup_c_lineedit.text()
+            and current.signup_lineedit.text() != ""):
+
+        reset_data_and_database()
+
+        passwd = current.signup_lineedit.text()
+        hashed_pass = hashlib.sha256(passwd.encode()).hexdigest()
+        encrypted_pass, iv = encrypt_password(passwd, enc_key_p)
+        print(type(encrypted_pass))
+
+        # Saving to bin file
+        with open('data.bin', 'ab') as f:
             f.write(hashed_pass.encode() + b'\n')
+            f.write(encrypted_pass + b'\n')
+        with open('data.bin', 'ab') as f:
+            f.write(generate_key(enc_key_p, iv) + b'\n')
 
         loading_database(win)
         win.show()
@@ -396,9 +410,13 @@ def signup_onClick(current):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    login = LoginWindow()
     win = PasswordGenerator()
 
-    login.show()
+    if os.path.isfile('data.bin'):
+        login = LoginWindow()
+        login.show()
+    else:
+        signup = SignupWindow()
+        signup.show()
 
     sys.exit(app.exec_())
